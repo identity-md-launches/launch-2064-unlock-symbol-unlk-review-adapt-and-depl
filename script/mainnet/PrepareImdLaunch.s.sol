@@ -69,10 +69,11 @@ contract PrepareImdLaunch is Script {
             config.record.kind == "univ4_hook" && config.record.launchNumber == config.number
                 && config.record.sourceCommit != bytes32(0) && config.record.manifestHash != bytes32(0)
                 && config.record.attestationHash != bytes32(0) && config.record.verifierKey != bytes32(0)
-                && keccak256(bytes(config.record.sourceRepoUrl))
-                    == keccak256("https://github.com/identity-md-launches/launch-1838-uniswap-v4-hook-code"),
+                && bytes(config.record.sourceRepoUrl).length != 0,
             "actual accepted provenance required"
         );
+        // The registry records the publisher's delivered tree, whose URL may differ from the imported
+        // repository. The release service must match this entire record to its actual signed attestation.
         require(
             config.openingFdvImd >= 250 ether && config.openingFdvImd <= 250000 ether,
             "recorded policy cap range"

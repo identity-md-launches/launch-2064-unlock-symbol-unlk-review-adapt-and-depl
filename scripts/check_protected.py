@@ -20,7 +20,12 @@ def bytecode(c):
     return json.loads((root/'out'/f'{c}.sol'/f'{c}.json').read_text())['bytecode']['object']
 args=subprocess.check_output(['cast','abi-encode','f(address,address,address,address)',manager,token,factory,owner],text=True).strip()
 env=os.environ.copy()
-env.update(IMD_EXPECTED_SUPPLY=str(10**27), IMD_TOKEN_DECIMALS=str(manifest["token"]["decimals"]), IMD_HOOK_CREATION_CODE=bytecode(manifest['hook']['contract'])+args[2:],IMD_HOOK_FLAGS=str(0x3fc0),
+permissions = ['beforeInitialize', 'afterInitialize', 'beforeAddLiquidity', 'afterAddLiquidity',
+    'beforeRemoveLiquidity', 'afterRemoveLiquidity', 'beforeSwap', 'afterSwap', 'beforeDonate',
+    'afterDonate', 'beforeSwapReturnDelta', 'afterSwapReturnDelta',
+    'afterAddLiquidityReturnDelta', 'afterRemoveLiquidityReturnDelta']
+flags = sum(1 << (13 - permissions.index(p)) for p in set(manifest['hook']['permissions']))
+env.update(IMD_EXPECTED_SUPPLY=str(10**27), IMD_TOKEN_DECIMALS=str(manifest["token"]["decimals"]), IMD_HOOK_CREATION_CODE=bytecode(manifest['hook']['contract'])+args[2:],IMD_HOOK_FLAGS=str(flags),
     IMD_POOL_MANAGER=manager,IMD_TOKEN_PROBE=token,IMD_TOKEN_CREATION_CODE=bytecode(manifest['token']['contract']),
     IMD_FACTORY_PROBE=factory,IMD_PAIRED_CURRENCY=manifest['pool']['pairedCurrency'],IMD_POOL_FEE=str(manifest['pool']['fee']),
     IMD_TICK_SPACING=str(manifest['pool']['tickSpacing']),IMD_SQRT_PRICE=manifest['pool']['initialPrice'])

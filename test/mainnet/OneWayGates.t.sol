@@ -296,8 +296,6 @@ contract OneWayGatesTest is ImdFixture {
 
     function testWrongPoolCheckpointAndInvalidCurrentStateCannotGrantRights() public {
         _reference(1_000_000 ether);
-        _slot0(Q96, 1, 12500);
-        assertFalse(hook.checkpoint());
         _slot0(Q96, 0, 10000);
         assertFalse(hook.checkpoint());
         _slot0(TickMath.getSqrtPriceAtTick(tokenIs0 ? seedLower - 1 : seedUpper + 1), 0, 12500);
@@ -312,6 +310,18 @@ contract OneWayGatesTest is ImdFixture {
         vm.store(MANAGER, foreign, bytes32(uint256(Q96) | uint256(12500) << 208));
         assertFalse(hook.checkpoint());
         assertEq(hook.tier(), 0);
+    }
+
+    function testProtocolFeeDoesNotInvalidateSpotOrPreventPermanentGateAdvancement() public {
+        _reference(50000000 ether / 1_000_000_000);
+        _slot0(Q96, 0x3e83e8, 12500); // Core maximum: 1000 pips in each direction.
+        assertEq(oracle.fdvUsd(), 50000000 ether);
+        assertTrue(hook.checkpoint());
+        assertEq(hook.tier(), 16);
+        assertTrue(hook.fullyUnlocked());
+        _reference(1);
+        assertFalse(hook.checkpoint());
+        assertTrue(hook.fullyUnlocked());
     }
 
     function testUnobservedPriceTouchIsNotBackfilled() public {

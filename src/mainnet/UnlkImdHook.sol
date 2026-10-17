@@ -226,7 +226,7 @@ contract UnlkImdHook is IHooks {
     /// Hashing the creation code proves constructor state as well as runtime. A runtime-only check cannot
     /// detect a lookalike whose custom constructor forged hidden credit mappings or oracle history.
     /// Stage-1 service, record, allocation and principal checks run before companion deployment.
-    /// Source history/freshness and claim certification are additionally required at activation.
+    /// Current source validity and claim certification are additionally required at activation.
     /// Before activation the authority may stage a fresh pinned bundle; after it, never. Failure is atomic.
     /// No custom router is staged: the execution route is the pinned, immutable Universal Router.
     function deployCompanions(uint64 number, IImdUsdSource feed, bytes[4] calldata codes)
@@ -351,7 +351,7 @@ contract UnlkImdHook is IHooks {
 
     function _verifyFeed(address feed) private view {
         // Adapter creation code is pinned separately from venue configuration. The adapter validates
-        // its immutable market/feed identities and history on every reading, including activation.
+        // its immutable market/feed identities and current state on every reading, including activation.
         if (feed.code.length == 0) revert InvalidConfig();
         // Source is required to be the exact reviewed adapter with canonical constructor arguments.
         if (feed != stagedPriceSource) revert InvalidConfig();
@@ -394,9 +394,10 @@ contract UnlkImdHook is IHooks {
             pendingInitiator = initiator;
         }
         pendingOperation = keccak256(abi.encode(sender, key, params));
-        // A later PoolManager protocol-fee change cannot silently change the promised total trading fee.
-        (,, uint24 protocolFee, uint24 lpFee) = poolManager.getSlot0(poolId);
-        if (protocolFee != 0 || lpFee != FEE) revert InvalidPool();
+        // Uniswap governance controls its protocol fee independently. Core accounts for that charge;
+        // it must not become a launch-wide pause. Keep the launch LP fee and IMD hook fee unchanged.
+        (,,, uint24 lpFee) = poolManager.getSlot0(poolId);
+        if (lpFee != FEE) revert InvalidPool();
         uint256 specifiedFee = _specifiedFee(params);
         pendingSpecifiedFee = specifiedFee;
         return (IHooks.beforeSwap.selector, toBeforeSwapDelta(int128(int256(specifiedFee)), 0), 0);

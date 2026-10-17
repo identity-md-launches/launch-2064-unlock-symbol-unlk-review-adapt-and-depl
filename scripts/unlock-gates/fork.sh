@@ -19,4 +19,4 @@ p = Path('rehearsal/unlock-gates/MainnetHandoff.t.sol')
 Path('test/scratch/unlock-gates/MainnetHandoff.t.sol').write_text(p.read_text().replace('https://ethereum-rpc.publicnode.com', url))
 PY
 forge test --match-path 'test/scratch/unlock-gates/MainnetHandoff.t.sol' \
-  --fuzz-seed 0xda8bb4c7a1dfecbe1d2824491108f08053450070bcb18434381100e02a366653 -vv "$@"
+  --fuzz-seed 0xa9a85f3e917f851909cc56d729dafbccc481a7a8bd1cc34be8bf4db901b32cb0 -vv "$@"

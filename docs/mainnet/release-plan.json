@@ -1,9 +1,13 @@
 {
-  "documentType": "mainnet-source-preparation-not-launch-manifest",
-  "status": "NO_GO_SOURCE_COMPLETE_UNDEPLOYED",
-  "baseCommit": "3939f319d67dcd92eb50b057c0c13754ccb6b35c",
+  "documentType": "mainnet-release-plan-not-launch-manifest",
+  "status": "ADAPTED_PENDING_PLATFORM_REVIEW_PUBLICATION_AND_DEPLOYMENT",
+  "source": {
+    "repoUrl": "https://github.com/identity-md-launches/launch-1838-uniswap-v4-hook-code",
+    "baseCommit": "3b29fd1d044fb16bbe1595ddacf7ec4efbfdd8fa",
+    "latestSourceJob": "67368721-0842-4a73-9edd-0177c5799e60"
+  },
   "acceptedChangeCommit": null,
-  "commitResponsibility": "Contributor uploader records the final exact commit; local .git writes are prohibited. Source hashes accompany this change set.",
+  "commitResponsibility": "Platform publisher supplies the final delivered source commit; no synthetic release provenance.",
   "chainId": 1,
   "kind": "univ4_hook",
   "pairWith": "imd",
@@ -20,18 +24,16 @@
   ],
   "flags": "0x3fcc",
   "pool": {
-    "sort": "numeric token/IMD order",
+    "sort": "numeric token/IMD order after actual token prediction",
     "fee": 12500,
     "tickSpacing": 60
   },
+  "owner": "0x48e4e74fe1d0c14404ceb57b9fec5b21329c6ec9",
+  "payer": "0x48e4e74fe1d0c14404ceb57b9fec5b21329c6ec9",
   "openingEconomics": {
     "recordedPolicyVersion": 34,
     "defaultFdvImd": "2500",
-    "advertisedCustomFdvImd": [
-      "250",
-      "250000"
-    ],
-    "actualSeed": "derive from selected policy and assigned new token ordering; no ETH floor"
+    "actualSeed": "one-sided token seed derived from actual token ordering and policy; final liquidity rounding dust goes to payer"
   },
   "treasury": {
     "beneficiary": "0x48e4e74fe1d0c14404ceb57b9fec5b21329c6ec9",
@@ -43,7 +45,7 @@
     "continuesAfterUnlock": true
   },
   "priceSource": {
-    "contract": "ImdSampledUsdSource",
+    "contract": "ImdSpotUsdSource",
     "constructorArguments": [],
     "creationCommitment": "ImdReviewedCode.PRICE_SOURCE",
     "poolId": "0xb07d640fd9e2eb9dc81b953c8e4fd006bdfeaf276010fb5418eb763ca15abfb3",
@@ -52,83 +54,16 @@
       "currency1": "0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7",
       "fee": 10000,
       "tickSpacing": 200,
-      "hooks": "0x0"
+      "hooks": "none"
     },
-    "ethUsd": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-    "status": "unchanged sampled reference; external-market ratchet/sustained manipulation remains High; separate from accepted UNLK spikes",
-    "observation": "permissionless sampled spot, NOT continuous history and NOT a v4 TWAP",
-    "windowsSeconds": [
-      7200,
-      86400
-    ],
-    "warmupSeconds": 86400,
-    "minHistorySeconds": 172800,
-    "minSampleIntervalSeconds": 60,
-    "maxSampleGapSeconds": 1200,
-    "maxTicksPerMinute": 50,
-    "maxLagTicks": 2000,
-    "minimumVirtualEthWei": "250000000000000000000",
+    "ethUsd": "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419",
     "maxFeedAgeSeconds": 5400,
-    "keeper": "permissionless sample() every1..20min, operational5min recommended; ordinary Ethereum gas; no UNLK confirmation keeper",
     "configuredProductionSource": null,
-    "design": "../unlock-gates/DESIGN.md#separate-imdusd-reference-retained-latency-and-cost"
+    "observation": "current valid spot only; no stored history",
+    "warmupSeconds": 0,
+    "keeper": null,
+    "design": "SPOT_PRICE.md"
   },
-  "recordedBlock": 26204722,
-  "services": "../unlock-gates/network/preflight.json",
-  "artifacts": "ARTIFACTS.json",
-  "stage1Mining": "scripts/mainnet/mine.mjs",
-  "stage2Calldata": "script/mainnet/PrepareImd.s.sol",
-  "forkRehearsal": "rehearsal/unlock-gates/MainnetHandoff.t.sol",
-  "mainnetCandidateWrites": false,
-  "liveLaunch1560ConfigChanged": false,
-  "publicTransactions": [],
-  "deployment": null,
-  "hostingPublication": null,
-  "review": {
-    "contributorReview": "completed separately on final production source; two incidental precision/planner findings fixed and re-reviewed",
-    "finalExternalAudit": "pending; no external certification or final GitHub metadata approval",
-    "sharedExecutor": "High H-01 unresolved, blocking",
-    "externalReference": "High manipulation unresolved, blocking",
-    "authorChecks": "not independent authority",
-    "report": "../unlock-gates/INDEPENDENT_REVIEW.md"
-  },
-  "blockers": [
-    "High H-01 mature shared-executor pooling: reconcile authenticated beneficial-user settlement with preserved router/smart-account model; no silent risk waiver",
-    "High external-reference ratchet/sustained manipulation: independent reference/economic resolution required; UNLK spot authorization does not waive it",
-    "External independent security/economic review and release approval bound to published final commit pending",
-    "Contributor uploader publication and platform exact-commit admission/owner checks pending; local .git writes prohibited",
-    "Actual future launch identities, complete certified contributor tree, executable authority path and receipt-bound postflight are platform release operations",
-    "Actual48h clean sampled source history, ongoing gas sponsor/keeper and monitoring must exist for new deployment; fork time travel is not production history",
-    "Browser/mobile/wallet checks unavailable (Playwright missing) and protected admission harness not supplied; no pass claimed",
-    "No public stage1/stage2, token replacement, mainnet signing, live configuration edit or hosting publication authorized by this code-only task"
-  ],
-  "quotaMitigation": {
-    "buyCreditMaturity": "next block; E remains cumulative; claim and payer credits unaffected",
-    "walletExecutor": "optional immutable controller; separate E/S; standard router remains directly accessible",
-    "residualH01": "High, blocking: mature shared capacity remains poolable"
-  },
-  "historicalProofPriceSource": {
-    "contract": "ImdV4UsdSource",
-    "constructorArguments": [],
-    "poolId": "0xb07d640fd9e2eb9dc81b953c8e4fd006bdfeaf276010fb5418eb763ca15abfb3",
-    "status": "historical, no longer admitted by deployPriceSource; superseded by the authorized sampled redesign",
-    "windowsSeconds": [
-      7200,
-      86400
-    ],
-    "warmupSeconds": 86400,
-    "confirmations": 64,
-    "maxAgeSeconds": 1200,
-    "maxBlockGapSeconds": 60,
-    "maxDivergenceBps": 1000,
-    "minimumVirtualEthWei": "10000000000000000000000",
-    "history": "every consecutive produced block authenticated by blockhash/header/account/storage proofs; no spot extrapolation",
-    "configuredProductionSource": null
-  },
-  "currentReport": "../unlock-gates/HANDOFF.md",
-  "currentDesign": "../unlock-gates/DESIGN.md",
-  "currentDeployment": "../unlock-gates/DEPLOYMENT.md",
-  "stage1Calldata": "script/mainnet/PrepareImdLaunch.s.sol",
   "gates": {
     "design": "one-way instantaneous official-pool spot thresholds",
     "initialBps": 2000,
@@ -180,5 +115,32 @@
     "saleOrdering": "account against already-open gate before own post-swap evaluation",
     "rollback": "transaction-atomic gates, E/S, maturity, fees and pool state",
     "history": "no detection of unobserved historical touches"
-  }
+  },
+  "recordedBlock": 26210931,
+  "services": "release/network/preflight.json",
+  "artifacts": "ARTIFACTS.json",
+  "stage1Mining": "scripts/mainnet/mine.mjs",
+  "stage1Calldata": "script/mainnet/PrepareImdLaunch.s.sol",
+  "stage2Calldata": "script/mainnet/PrepareOwnerTransactions.s.sol",
+  "forkRehearsal": "rehearsal/unlock-gates/MainnetHandoff.t.sol",
+  "publicTransactions": [],
+  "deployment": null,
+  "hostingPublication": null,
+  "review": {
+    "supplementalIndependent": "complete; release/REVIEW.md",
+    "platformPanel": "pending",
+    "authorChecks": "not independent authority",
+    "sharedExecutor": "explicitly accepted, remains possible",
+    "externalSpotManipulation": "explicitly accepted, including flash manipulation and permanent global bypass"
+  },
+  "blockers": [
+    "platform generated tests, protected admission, manifest approval, required four-specialist panel and judge",
+    "publish final source and bind verifier attestation to actual delivered commit/manifest",
+    "assign real launch identity and complete native round0 tree/schedule",
+    "mine final initcode salt and rehearse actual stage1 plus owner wallet calls before broadcast",
+    "platform factory stage1 then owner-signed stage2, public receipt/runtime/explorer verification and postflight"
+  ],
+  "currentReport": "release/STATUS.json",
+  "currentDesign": "SPOT_PRICE.md",
+  "currentDeployment": "release/OPERATIONS.md"
 }

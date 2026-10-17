@@ -17,8 +17,8 @@ interface IImdUsdSource {
 }
 
 /// @notice Instantaneous FDV for the exact bound official UNLK/IMD pool.
-/// @dev No UNLK history, TWAP, confirmation or time filter. The independent IMD/USD reference retains
-/// its own history/freshness/market validation. A valid short-lived UNLK spike may permanently open gates.
+/// @dev No history, TWAP, confirmation or time filter. The stateless IMD/USD reference validates
+/// current market state and feed freshness. A valid short-lived spike in either pool may open gates forever.
 contract UnlkImdOracle {
     using PoolIdLibrary for PoolKey;
     using StateLibrary for IPoolManager;
@@ -93,13 +93,13 @@ contract UnlkImdOracle {
     /// No history of unobserved touches is inferred. Call the hook's checkpoint to persist new gates.
     function fdvUsd() external view returns (uint256) {
         if (!bound) revert InvalidOracle();
-        (uint160 sqrtPrice,, uint24 protocolFee, uint24 lpFee) = poolManager.getSlot0(poolId);
+        (uint160 sqrtPrice,,, uint24 lpFee) = poolManager.getSlot0(poolId);
         (uint128 liquidity,,) =
             poolManager.getPositionInfo(poolId, factory, rangeLowerTick, rangeUpperTick, bytes32(0));
         if (
             sqrtPrice == 0 || sqrtPrice < rangeLower || sqrtPrice > rangeUpper || liquidity < MIN_LIQUIDITY
                 || SeedDepth.capacity(rangeLower, rangeUpper, liquidity, tokenIs0) < MIN_SEED_QUOTE_CAPACITY
-                || protocolFee != 0 || lpFee != 12500
+                || lpFee != 12500
         ) revert InvalidOracle();
         uint256 imdUsd = feed.priceUsd();
         // The admitted source's ETH/USD cap and TickMath domain fit this bound. Reject nonsensical

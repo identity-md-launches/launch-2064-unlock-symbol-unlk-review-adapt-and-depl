@@ -116,6 +116,26 @@ contract ImdLaunchPlanTest is ImdFixture {
         prepare.prepare(c);
         assertEq(predictedHook.code.length, 0);
     }
+
+    function testDeliveredRepositoryIsAnExplicitProvenanceInput() public {
+        PrepareImdLaunch helper = new PrepareImdLaunch();
+        PrepareImdLaunch.Config memory c = _config();
+        // Synthetic publisher output used only locally; not a claimed release URL or attestation.
+        c.record.sourceRepoUrl = "https://github.com/test/fixture-delivery";
+        PrepareImdLaunch.Plan memory plan = helper.prepare(c);
+        vm.prank(plan.requiredSigner);
+        (bool ok,) = plan.to.call(plan.data);
+        assertTrue(ok);
+        assertEq(factory.registry().launchOf(LAUNCH_NUMBER).sourceRepoUrl, c.record.sourceRepoUrl);
+    }
+
+    function testEmptyDeliveredRepositoryIsRejected() public {
+        PrepareImdLaunch helper = new PrepareImdLaunch();
+        PrepareImdLaunch.Config memory c = _config();
+        c.record.sourceRepoUrl = "";
+        vm.expectRevert("actual accepted provenance required");
+        helper.prepare(c);
+    }
 }
 
 contract ImdLaunchPlanReverseTest is ImdLaunchPlanTest {

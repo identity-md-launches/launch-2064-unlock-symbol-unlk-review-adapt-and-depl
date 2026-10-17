@@ -1,36 +1,27 @@
-# UNLOCK / UNLK — one-way gate candidate
+# UNLOCK / UNLK — Ethereum mainnet launch adaptation
 
-Implemented on top of accepted commit `3939f319d67dcd92eb50b057c0c13754ccb6b35c`. This is source, tests, candidate UI and release preparation only. No mainnet transaction, token replacement, deployment or live-site publication occurred. Existing live launch1560 configuration and contracts remain unchanged.
+This revision adapts the exact source at `3b29fd1d044fb16bbe1595ddacf7ec4efbfdd8fa` for a **new Ethereum mainnet UNLK/IMD launch**. The existing Sepolia deployment, its contracts and website configuration are preserved. No website publication is part of this release.
 
-A valid instantaneous **official UNLK/IMD** price touch opens every crossed FDV gate immediately and permanently:20% initially,25% at$100K, then the unchanged ladder through95% at$40M. A valid$50M touch permanently bypasses quota for **all** holders, including E=0 recipients. Brief spikes and immediate selling are intended; no UNLK TWAP, confirmation timer, sequential wait or manipulation-resistance claim remains.
+The active manifest selects `src/mainnet/UnlkImdHook.sol`, IMD, fee12500, tick spacing60 and ten permissions (`0x3fcc`). The historical Sepolia manifest is preserved at [docs/mainnet/release/imported-sepolia-manifest.json](docs/mainnet/release/imported-sepolia-manifest.json). [ADAPTATION.md](ADAPTATION.md) records every change and both reproduced imported-audit findings.
 
-Cumulative acquisition/sale accounting and buy maturity are preserved. With E=1000 and S=200, the30% gate permits only100 more tokens. Gate changes never reset S or credit E. Sales are checked against the gate already open before their own post-swap update. **Current price architecture (this revision):** UNLK/USD = official UNLK/IMD spot × existing IMD/ETH v4 spot × validated Chainlink ETH/USD, all read from current on-chain state; FDV = 1B × UNLK/USD. The sampler, 48h warm-up, observation windows, rate clamps and keeper are removed from the active path (`ImdSampledUsdSource` stays in the tree as historical, and setup no longer admits it). See [docs/mainnet/SPOT_PRICE.md](docs/mainnet/SPOT_PRICE.md).
+Price uses the existing **stateless `ImdSpotUsdSource`**: official UNLK/IMD spot × existing IMD/ETH spot × fresh validated Chainlink ETH/USD; FDV uses the fixed 1B supply. There is no sampler, keeper, observation window or warm-up. Current price validity is required for activation and new gates; reference failures do not block otherwise valid trading or independent native claims. See [SPOT_PRICE.md](docs/mainnet/SPOT_PRICE.md).
 
-**Mainnet decision: NO-GO.** The separate contributor review confirms the requested gate behavior and exact arithmetic, but **High shared-executor quota pooling** and **instantaneous manipulation of either pool (including flash/same-transaction) can open gates early and permanently, including the $50M bypass** — accepted by the requester as economics, not fixed and not claimed resistant. External independent audit and final published-commit release approval are pending. Fork success is not deployment safety approval.
+Gates begin at20%. Valid instantaneous touches permanently open the highest crossed tier through95% at$40M; $50M permanently bypasses quotas for **all** holders. Cumulative mature E/S and prior sales remain intact: 1000 acquired,200 sold,then30% permits only100 more. One-block buy maturity and the authenticated standard-router initiator ledger remain unchanged. Ordinary token transfers carry no quota rights.
 
-- [Consolidated GO/NO-GO, exact checks and remaining requirements](docs/unlock-gates/HANDOFF.md)
-- [Current spot price architecture, deployment checklist and results](docs/mainnet/SPOT_PRICE.md)
-- [Gate/accounting design](docs/unlock-gates/DESIGN.md) (its sampled-reference sections are historical)
-- [Unsigned reproducible factory/stage2 scripts and concrete release operations](docs/unlock-gates/DEPLOYMENT.md)
-- [Separate contributor review, fixed findings and unresolved Highs](docs/unlock-gates/INDEPENDENT_REVIEW.md)
-- [Release bytecode hashes/sizes](docs/mainnet/ARTIFACTS.json) and [ABIs](docs/mainnet/abi/)
+The launch retains 10% swarm /87% pool /3% payer, fixed1B supply/18 decimals, fee12500 and the fixed75bps treasury fee in IMD. Uniswap's independently controlled protocol fee is now accounted for by core instead of halting the launch. Collected LP revenue still splits80% payer/20% IMD distribution; with a protocol fee, those are shares of actual LP receipts, not promises of exactly1%/0.25% of gross input. The treasury beneficiary is immutable `0x48e4e74fe1d0c14404ceb57b9fec5b21329c6ec9`; NFT purchases remain manual.
 
-The pinned Solidity0.8.26 project and all ordinary vendored dependencies build offline. No build configuration or dependency changed:
+**Accepted risks remain:** mature shared-executor quota pooling and manipulation of either spot pool, including same-transaction/flash manipulation of the external IMD reference, can open gates early and permanently up to the global bypass. They are not claimed fixed. Platform treasury-approved later native reward rounds can create further claim eligibility; other pools do not enforce this pool's quota. Neither risk acceptance nor local tests replace mandatory platform review.
+
+The actual paid request binds the correct source, owner, chain and economics. Its imported-code audit is accepted; its four-specialist audit panel and judge follow this adaptation. Publication, assigned launch records, deployment receipts and sealed activation are downstream release outputs. **No mainnet stage1 or stage2 transaction is claimed here.** See [release status and operations](docs/mainnet/release/OPERATIONS.md) and [validation](docs/mainnet/release/VALIDATION.md). Stage1 alone means pool deployed, trading inactive.
+
+Reproduce with the unchanged offline Foundry configuration and vendored dependencies:
 
 ```sh
 forge build
-FOUNDRY_FUZZ_SEED=0xda8bb4c7a1dfecbe1d2824491108f08053450070bcb18434381100e02a366653 forge test
-forge fmt --check
-bash scripts/unlock-gates/check.sh
+FOUNDRY_FUZZ_SEED=0xa9a85f3e917f851909cc56d729dafbccc481a7a8bd1cc34be8bf4db901b32cb0 forge test
+python3 scripts/mainnet/artifacts.py --check
+python3 scripts/mainnet/check-manifest.py
+python3 -B -m unittest discover -s test -p 'test_mainnet_manifest.py' -v
 ```
 
-Optional read-only network evidence and local recorded-block rehearsal:
-
-```sh
-python3 scripts/unlock-gates/record-network.py https://ethereum-rpc.publicnode.com
-bash scripts/unlock-gates/fork.sh https://eth.drpc.org --no-storage-caching
-```
-
-The fork deploys only into local fork state, impersonates the factory signer locally, and activates in the recorded block from the actual IMD/ETH pool and actual Chainlink round, with no time travel and no fabricated history. Default offline tests need no RPC, environment variables, filesystem cheatcodes or FFI.
-
-The task prohibits `.git/` changes. The contributor uploader must publish these ordinary files while preserving history, return the exact GitHub commit and bind it to the source checksums. No unpublished SHA is invented. Earlier generations and their historical reports remain in the repository; their time-based rules and approvals do not certify this successor.
+After intentionally changing companion code, rebuild and regenerate `ImdReviewedCode` with `python3 scripts/mainnet/artifacts.py --write`, then rebuild and check again. Mine the actual release salt only after final code, owner, factory and predicted token are known. The recorded-block fork and its local CREATE2 mining are simulations; no synthetic launch number, allocation tree or source attestation is a release input.
